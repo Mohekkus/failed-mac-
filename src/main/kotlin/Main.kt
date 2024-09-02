@@ -9,11 +9,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import java.io.File
+import java.nio.file.FileSystem
 
 @Composable
 @Preview
 fun App() {
-    var text by remember { mutableStateOf("Hello, World!") }
+    var text by remember {
+        mutableStateOf(
+            ResourceFetcher.instance.get("openvpn-2.6.12.tar.gz")?.file ?: "noope"
+        )
+    }
 
     MaterialTheme {
         Button(onClick = {
@@ -24,8 +30,20 @@ fun App() {
     }
 }
 
-fun main() = application {
-    Window(onCloseRequest = ::exitApplication) {
-        App()
-    }
+fun main() {
+    val temporaryCreator = TemporaryCreator.instance
+    val path = ResourceFetcher.instance.get("openvpn-2.6.12.tar.gz")?.file ?: "x"
+    val temp = File(path).copyTo(temporaryCreator.createFileTemp(), true, DEFAULT_BUFFER_SIZE)
+
+    if (TarExtractor.instance.extract(temp, temporaryCreator.dir))
+        temp.delete()
+
 }
+
+//fun main() = application {
+//    Window(
+//        onCloseRequest = ::exitApplication
+//    ) {
+//        App()
+//    }
+//}
